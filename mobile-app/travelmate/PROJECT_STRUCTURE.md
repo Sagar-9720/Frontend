@@ -1,0 +1,29 @@
+lib/
+  models/
+    user.dart
+    trip.dart
+    auth.dart
+  services/
+    user_service.dart
+    trip_service.dart
+    auth_service.dart
+  screens/
+    home_screen.dart
+    profile_screen.dart
+    trips_screen.dart
+    login_screen.dart
+    admin/
+      dashboard_screen.dart
+      user_management_screen.dart
+      trip_management_screen.dart
+  util/
+    ...existing utilities...
+  widgets/
+    user_card.dart
+    trip_card.dart
+    auth_form.dart
+  theme/
+    app_theme.dart
+  types/
+    app_types.dart
+

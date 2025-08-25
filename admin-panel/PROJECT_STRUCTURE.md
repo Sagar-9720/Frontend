@@ -1,0 +1,29 @@
+src/
+  models/
+    User.ts
+    Trip.ts
+    Auth.ts
+  services/
+    userService.ts
+    tripService.ts
+    authService.ts
+  components/
+    UserManagement/
+    TripManagement/
+    Auth/
+  utils/
+    api.ts
+    helpers.ts
+  pages/
+    Dashboard.tsx
+    Users.tsx
+    Trips.tsx
+    Login.tsx
+  hooks/
+    useAuth.ts
+    useFetch.ts
+  theme/
+    index.ts
+  types/
+    index.ts
+
