@@ -161,8 +161,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         userInfo,
         token: authToken,
         refreshToken: refToken,
-      } = result.data || {};
-      logger.info("Login Successful", result);
+      } = result.data.data || {};
+      logger.info("Login Successful", result.data);
 
       // // Store auth data
       storageUtility.setAuthToken(authToken);

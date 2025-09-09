@@ -9,7 +9,7 @@ import TripsPage from "../pages/Trips/TripsPage";
 import TravelJournalMain from "../pages/Journal/TravelJournalMain";
 import TravelJournal from "../pages/Journal/TravelJournal";
 import VerifyEmail from "../pages/Auth/VerifyEmail";
-// import { ProtectedRoute } from "./ProtectedRoute";
+import { ProtectedRoute } from "./ProtectedRoute";
 
 const AppRoutes = () => (
   <Routes>
@@ -18,66 +18,66 @@ const AppRoutes = () => (
     <Route path="/register" element={<Register />} />
     <Route
       path="/"
-      // element={
-      //   <ProtectedRoute>
-      //     <Home />
-      //   </ProtectedRoute>
-      // }
-      element={<Home />}
+      element={
+        <ProtectedRoute>
+          <Home />
+        </ProtectedRoute>
+      }
+      // element={<Home />}
     />
     <Route
       path="/destinations"
-      // element={
-      //   <ProtectedRoute>
-      //     <Destinations />
-      //   </ProtectedRoute>
-      // }
-      element={<Destinations />}
+      element={
+        <ProtectedRoute>
+          <Destinations />
+        </ProtectedRoute>
+      }
+      // element={<Destinations />}
     />
     <Route
       path="/destinations/:id"
-      // element={
-      //   <ProtectedRoute>
-      //     <DestinationPage />
-      //   </ProtectedRoute>
-      // }
-      element={<DestinationPage />}
+      element={
+        <ProtectedRoute>
+          <DestinationPage />
+        </ProtectedRoute>
+      }
+      // element={<DestinationPage />}
     />
     <Route
       path="/trips"
-      // element={
-      //   <ProtectedRoute>
-      //     <Trips />
-      //   </ProtectedRoute>
-      // }
-      element={<Trips />}
+      element={
+        <ProtectedRoute>
+          <Trips />
+        </ProtectedRoute>
+      }
+      // element={<Trips />}
     />
     <Route
       path="/trips/:id"
-      // element={
-      //   <ProtectedRoute>
-      //     <TripsPage />
-      //   </ProtectedRoute>
-      // }
-      element={<TripsPage />}
+      element={
+        <ProtectedRoute>
+          <TripsPage />
+        </ProtectedRoute>
+      }
+      // element={<TripsPage />}
     />
     <Route
       path="/journal"
-      // element={
-      //   <ProtectedRoute>
-      //     <TravelJournalMain />
-      //   </ProtectedRoute>
-      // }
-      element={<TravelJournalMain />}
+      element={
+        <ProtectedRoute>
+          <TravelJournalMain />
+        </ProtectedRoute>
+      }
+      // element={<TravelJournalMain />}
     />
     <Route
       path="/journal/:id"
-      // element={
-      //   <ProtectedRoute>
-      //     <TravelJournal />
-      //   </ProtectedRoute>
-      // }
-      element={<TravelJournal />}
+      element={
+        <ProtectedRoute>
+          <TravelJournal />
+        </ProtectedRoute>
+      }
+      // element={<TravelJournal />}
     />
   </Routes>
 );

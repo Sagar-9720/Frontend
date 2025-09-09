@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-class SuraTextFormFieldTheme {
-  SuraTextFormFieldTheme._();
+class TTextFormFieldTheme {
+  TTextFormFieldTheme._();
 
   static InputDecorationTheme lightInputDecorationTheme = InputDecorationTheme(
     errorMaxLines: 3,

@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
-class SuraHelperFunctions {
+class THelperFunctions {
   static Color? getColor(String value) {
-    ///Define your product specific colors here and it will match the attribute colors and show specific
+    /// Define your product specific colors here and it will match the attribute colors and show specific
     if (value == 'Green') return Colors.green;
     if (value == 'Red') {
       return Colors.red;
@@ -34,12 +34,12 @@ class SuraHelperFunctions {
   }
 
   static void showSnackBar(String message) {
-    ScaffoldMessenger.of(
-      Get.context!,
-    ).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(Get.context!).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
   }
 
-  static void showALert(String title, String message) {
+  static void showAlert(String title, String message) {
     showDialog(
       context: Get.context!,
       builder: (BuildContext context) {
@@ -85,10 +85,7 @@ class SuraHelperFunctions {
     return MediaQuery.of(Get.context!).size.width;
   }
 
-  static String getFormattedDate(
-    DateTime date, {
-    String format = 'dd MMM yyyy',
-  }) {
+  static String getFormattedDate(DateTime date, {String format = 'dd MMM yyyy'}) {
     return DateFormat(format).format(date);
   }
 

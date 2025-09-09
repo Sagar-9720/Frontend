@@ -1,47 +1,47 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:sura_guide_app/utils/theme/custom_themes/appbar_theme.dart';
-import 'package:sura_guide_app/utils/theme/custom_themes/bottom_sheet_theme.dart';
-import 'package:sura_guide_app/utils/theme/custom_themes/checkbox_theme.dart';
-import 'package:sura_guide_app/utils/theme/custom_themes/outlined_button_theme.dart';
-import 'package:sura_guide_app/utils/theme/custom_themes/text_field_theme.dart';
-import 'package:sura_guide_app/utils/theme/custom_themes/text_theme.dart';
-import 'package:sura_guide_app/utils/theme/custom_themes/elevated_button_theme.dart';
-import 'package:sura_guide_app/utils/theme/custom_themes/chip_theme.dart';
+import 'custom_themes/appbar_theme.dart';
+import 'custom_themes/bottom_sheet_theme.dart';
+import 'custom_themes/checkbox_theme.dart';
+import 'custom_themes/chip_theme.dart';
+import 'custom_themes/elevated_button_theme.dart';
+import 'custom_themes/outlined_button_theme.dart';
+import 'custom_themes/text_field_theme.dart';
+import 'custom_themes/text_theme.dart';
 
-class SuraAppTheme {
-  SuraAppTheme._();
+class TAppTheme {
+  TAppTheme._();
 
   static ThemeData lightTheme = ThemeData(
     useMaterial3: true,
     // fontFamily: 'OpenSans',
-    textTheme: GoogleFonts.openSansTextTheme(SuraTextTheme.lightTextTheme),
+    textTheme: GoogleFonts.openSansTextTheme(TTextTheme.lightTextTheme),
     brightness: Brightness.light,
     primaryColor: Colors.blue,
     scaffoldBackgroundColor: Colors.white,
     // textTheme: SuraTextTheme.lightTextTheme,
-    elevatedButtonTheme: SuraElevatedButtonTheme.lightElevatedButtonThemeData,
-    chipTheme: SuraChipTheme.lightChipTheme,
-    appBarTheme: SuraAppBarTheme.lightAppBarTheme,
-    checkboxTheme: SuraCheckBoxTheme.lightCheckBoxTheme,
-    bottomSheetTheme: SuraBottomSheetTheme.lightBottomSheetTheme,
-    outlinedButtonTheme: SuraOutlinedButtonTheme.lightOutlinedButtonTheme,
-    inputDecorationTheme: SuraTextFormFieldTheme.lightInputDecorationTheme,
+    elevatedButtonTheme: TElevatedButtonTheme.lightElevatedButtonThemeData,
+    chipTheme: TChipTheme.lightChipTheme,
+    appBarTheme: TAppBarTheme.lightAppBarTheme,
+    checkboxTheme: TCheckBoxTheme.lightCheckBoxTheme,
+    bottomSheetTheme: TBottomSheetTheme.lightBottomSheetTheme,
+    outlinedButtonTheme: TOutlinedButtonTheme.lightOutlinedButtonTheme,
+    inputDecorationTheme: TTextFormFieldTheme.lightInputDecorationTheme,
   );
   static ThemeData darkTheme = ThemeData(
     useMaterial3: true,
     // fontFamily: 'OpenSans',
-    textTheme: GoogleFonts.openSansTextTheme(SuraTextTheme.darkTextTheme),
+    textTheme: GoogleFonts.openSansTextTheme(TTextTheme.darkTextTheme),
     brightness: Brightness.dark,
     primaryColor: Colors.blue,
     scaffoldBackgroundColor: Colors.black,
     // textTheme: SuraTextTheme.darkTextTheme,
-    elevatedButtonTheme: SuraElevatedButtonTheme.lightElevatedButtonThemeData,
-    chipTheme: SuraChipTheme.darkChipTheme,
-    appBarTheme: SuraAppBarTheme.darkAppBarTheme,
-    checkboxTheme: SuraCheckBoxTheme.darkCheckBoxTheme,
-    bottomSheetTheme: SuraBottomSheetTheme.darkBottomSheetTheme,
-    outlinedButtonTheme: SuraOutlinedButtonTheme.darkOutlinedButtonTheme,
-    inputDecorationTheme: SuraTextFormFieldTheme.darkInputDecorationTheme,
+    elevatedButtonTheme: TElevatedButtonTheme.lightElevatedButtonThemeData,
+    chipTheme: TChipTheme.darkChipTheme,
+    appBarTheme: TAppBarTheme.darkAppBarTheme,
+    checkboxTheme: TCheckBoxTheme.darkCheckBoxTheme,
+    bottomSheetTheme: TBottomSheetTheme.darkBottomSheetTheme,
+    outlinedButtonTheme: TOutlinedButtonTheme.darkOutlinedButtonTheme,
+    inputDecorationTheme: TTextFormFieldTheme.darkInputDecorationTheme,
   );
 }

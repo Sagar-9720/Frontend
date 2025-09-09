@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-class SuraChipTheme {
-  SuraChipTheme._();
+class TChipTheme {
+  TChipTheme._();
 
   static ChipThemeData lightChipTheme = ChipThemeData(
     disabledColor: Colors.grey.withOpacity(0.4),

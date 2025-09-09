@@ -1,13 +1,13 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-class SuraFlutterStorage {
-  static final SuraFlutterStorage _instance = SuraFlutterStorage._internal();
+class TFlutterStorage {
+  static final TFlutterStorage _instance = TFlutterStorage._internal();
 
-  factory SuraFlutterStorage() {
+  factory TFlutterStorage() {
     return _instance;
   }
 
-  SuraFlutterStorage._internal();
+  TFlutterStorage._internal();
 
   final _storage = const FlutterSecureStorage();
 

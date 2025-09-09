@@ -5,9 +5,8 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import 'package:device_info_plus/device_info_plus.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 
-class SuraDeviceUtils {
+class TDeviceUtils {
   static void hideKeyboard(BuildContext context) {
     FocusScope.of(context).requestFocus(FocusNode());
   }
@@ -139,11 +138,5 @@ class SuraDeviceUtils {
     } catch (e) {
       return 'DeviceIdError: $e';
     }
-  }
-
-  static Future<String?> getFcmToken() async {
-    FirebaseMessaging messaging = FirebaseMessaging.instance;
-    String? token = await messaging.getToken();
-    return token;
   }
 }
