@@ -1,6 +1,6 @@
 import React, { ButtonHTMLAttributes } from 'react';
 import { Loader2 } from 'lucide-react';
-import { SIZES, BUTTON_STRINGS } from '../../utils';
+import { SIZES } from '../../utils';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'danger' | 'success' | 'outline';

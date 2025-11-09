@@ -1,7 +1,7 @@
 // Environment Helper - Handles environment variables and configuration
 export class EnvironmentHelper {
   private static instance: EnvironmentHelper;
-  private config: Record<string, any> = {};
+  private config: Record<string, unknown> = {};
 
   private constructor() {
     this.loadEnvironmentVariables();
@@ -102,16 +102,24 @@ export class EnvironmentHelper {
       // Logging
       LOG_LEVEL: import.meta.env.VITE_LOG_LEVEL || "info",
       ENABLE_CONSOLE_LOGS: import.meta.env.VITE_ENABLE_CONSOLE_LOGS !== "false",
+      LOGGER_AUTO_SOURCE: import.meta.env.VITE_LOGGER_AUTO_SOURCE === "true",
+      LOGGER_SOURCE_DEPTH: parseInt(
+        import.meta.env.VITE_LOGGER_SOURCE_DEPTH || "2"
+      ),
     };
   }
 
   // Get environment variable
-  public get(key: string, defaultValue?: any): any {
-    return this.config[key] ?? defaultValue;
+  public get<T = unknown>(key: string, defaultValue?: T): T {
+    const value = this.config[key];
+    if (value !== undefined) {
+      return value as T;
+    }
+    return defaultValue as T;
   }
 
   // Set environment variable (for runtime configuration)
-  public set(key: string, value: any): void {
+  public set(key: string, value: unknown): void {
     this.config[key] = value;
   }
 
@@ -213,6 +221,7 @@ export class EnvironmentHelper {
     csp: boolean;
     httpsOnly: boolean;
     consoleLogs: boolean;
+    loggerAutoSource?: boolean;
   } {
     return {
       analytics: this.get("ENABLE_ANALYTICS"),
@@ -221,6 +230,7 @@ export class EnvironmentHelper {
       csp: this.get("ENABLE_CSP"),
       httpsOnly: this.get("ENABLE_HTTPS_ONLY"),
       consoleLogs: this.get("ENABLE_CONSOLE_LOGS"),
+      loggerAutoSource: this.get("LOGGER_AUTO_SOURCE", false),
     };
   }
 
@@ -231,7 +241,7 @@ export class EnvironmentHelper {
   } {
     return {
       maxSize: this.get("MAX_FILE_SIZE"),
-      allowedTypes: this.get("ALLOWED_FILE_TYPES").split(","),
+      allowedTypes: this.get<string>("ALLOWED_FILE_TYPES", "").split(","),
     };
   }
 
@@ -259,12 +269,12 @@ export class EnvironmentHelper {
   }
 
   // Get all configuration (for debugging)
-  public getAllConfig(): Record<string, any> {
+  public getAllConfig(): Record<string, unknown> {
     return { ...this.config };
   }
 
   // Get masked configuration (hide sensitive data)
-  public getMaskedConfig(): Record<string, any> {
+  public getMaskedConfig(): Record<string, unknown> {
     const sensitiveKeys = [
       "JWT_SECRET",
       "CLOUDINARY_API_SECRET",
@@ -273,9 +283,9 @@ export class EnvironmentHelper {
       "REDIS_URL",
     ];
 
-    const masked = { ...this.config };
+    const masked = { ...this.config } as Record<string, unknown>;
     sensitiveKeys.forEach((key) => {
-      if (masked[key]) {
+      if (Object.prototype.hasOwnProperty.call(masked, key)) {
         masked[key] = "***HIDDEN***";
       }
     });
@@ -288,8 +298,8 @@ export class EnvironmentHelper {
 export const environmentHelper = EnvironmentHelper.getInstance();
 
 // Helper functions
-export const getEnv = (key: string, defaultValue?: any) =>
-  environmentHelper.get(key, defaultValue);
+export const getEnv = <T = unknown>(key: string, defaultValue?: T) =>
+  environmentHelper.get<T>(key, defaultValue);
 export const isDevelopment = () => environmentHelper.isDevelopment();
 export const isProduction = () => environmentHelper.isProduction();
 export const getApiBaseUrl = () => environmentHelper.getApiBaseUrl();

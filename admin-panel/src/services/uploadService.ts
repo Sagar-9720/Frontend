@@ -1,7 +1,7 @@
 // Upload service for handling file uploads to various storage providers
-import { httpClient } from '../utils/http-client';
 import { logger } from '../utils/logger';
-import { API_ENDPOINTS, buildTripUrl } from './api';
+
+const log = logger.forSource('UploadService');
 
 export interface UploadOptions {
   maxSize?: number; // in bytes
@@ -116,6 +116,7 @@ class UploadService {
 
   // Generic upload method that tries different providers
   async upload(file: File, provider: 'aws' | 'cloudinary' | 'server' = 'server', options: UploadOptions = {}): Promise<UploadResult> {
+    log.info('Uploading file', { provider, size: file.size, type: file.type });
     switch (provider) {
       case 'aws':
         return this.uploadToS3(file, options);
@@ -219,8 +220,4 @@ class UploadService {
   }
 }
 
-export const uploadService = {
-  async uploadFile(endpoint: string, file: File, additionalData?: Record<string, any>) {
-    return await upload(endpoint, file, additionalData);
-  },
-};
+export const uploadService = new UploadService();

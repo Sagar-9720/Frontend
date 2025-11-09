@@ -1,55 +1,38 @@
-import { useState, useEffect } from "react";
+import { useResource, useMutationWithRefetch } from '../utils/dataManagerFactory';
+import { DATA_MANAGER } from '../utils/constants/dataManager';
 import { Destination } from "../models/entity/Destination";
 import { destinationService } from "../services/destinationService";
 
 export const useDestinations = () => {
-  const [destinations, setDestinations] = useState<Destination[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchDestinations = async () => {
-    setLoading(true);
-    try {
+  const { data, loading, error, refetch, setData } = useResource<Destination, Destination[]>({
+    sourceName: 'DestinationDataManager',
+    fetchFn: async () => {
       const result = await destinationService.getDestinations();
-      setDestinations(result);
-      setError(null);
-    } catch (err) {
-      setError("Failed to load destinations");
-      setDestinations([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+      return Array.isArray(result) ? result : [];
+    },
+    mapListFn: (raw) => raw as Destination[],
+    isList: true,
+    errorMessage: DATA_MANAGER.ERRORS.DESTINATIONS,
+  });
 
-  const createDestination = async (payload: Partial<Destination>) => {
-    await destinationService.createDestination(payload);
-    await fetchDestinations();
-  };
-
-  const updateDestination = async (
-    id: string,
-    payload: Partial<Destination>
-  ) => {
-    await destinationService.updateDestination(id, payload);
-    await fetchDestinations();
-  };
-
-  useEffect(() => {
-    let debounceTimer: ReturnType<typeof setTimeout>;
-    debounceTimer = setTimeout(() => {
-      fetchDestinations();
-    }, 300);
-    return () => {
-      clearTimeout(debounceTimer);
-    };
-  }, []);
+  const createDestination = useMutationWithRefetch<[Partial<Destination>], Destination>(
+    async (payload) => destinationService.createDestination(payload),
+    refetch,
+    'DestinationDataManager'
+  );
+  const updateDestination = useMutationWithRefetch<[string, Partial<Destination>], Destination>(
+    async (id, payload) => destinationService.updateDestination(id, payload),
+    refetch,
+    'DestinationDataManager'
+  );
 
   return {
-    destinations,
+    destinations: (data as Destination[]) || [],
     loading,
     error,
-    refetch: fetchDestinations,
+    refetch,
     createDestination,
     updateDestination,
+    setDestinations: setData,
   };
 };

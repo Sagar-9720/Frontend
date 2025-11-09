@@ -13,7 +13,7 @@ export interface LogEntry {
   level: LogLevel;
   message: string;
   timestamp: number;
-  data?: any;
+  data?: Record<string, unknown> | unknown;
   source?: string;
   userId?: string;
   sessionId?: string;
@@ -29,9 +29,12 @@ export class Logger {
   private logBuffer: LogEntry[] = [];
   private maxBufferSize: number = 1000;
   private sessionId: string;
+  private autoSource: boolean = false;
+  private sourceDepth: number = 2;
 
   private constructor() {
-    this.sessionId = this.generateSessionId();
+    // generate unique session id inline to avoid method dependency
+    this.sessionId = `${Math.random().toString(36).slice(2)}-${Date.now().toString(36)}`;
     this.initializeFromEnvironment();
   }
 
@@ -67,16 +70,54 @@ export class Logger {
 
     this.enableConsole = environmentHelper.get('ENABLE_CONSOLE_LOGS', true);
     this.enableRemote = environmentHelper.get('ENABLE_REMOTE_LOGGING', false);
+    this.autoSource = environmentHelper.get('LOGGER_AUTO_SOURCE', false);
+    this.sourceDepth = environmentHelper.get('LOGGER_SOURCE_DEPTH', 2);
   }
 
-  private generateSessionId(): string {
-    return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  private detectSource(from?: string): string | undefined {
+    if (from) return from;
+    if (!this.autoSource) return undefined;
+    try {
+      const err = new Error();
+      const stack = (err.stack || '').split('\n').slice(3 + this.sourceDepth);
+      // Attempt to extract file path and function name
+      const frame = stack[0] || '';
+      // V8 stack format: at FunctionName (file:line:col)
+      const match = frame.match(/at\s+(.*)\s+\((.*):(\d+):(\d+)\)/) || frame.match(/at\s+(.*):(\d+):(\d+)/);
+      if (match) {
+        const fn = match[1];
+        const file = match[2] || match[1];
+        const fileName = file?.split('/').pop();
+        return `${fn}${fileName ? `@${fileName}` : ''}`;
+      }
+    } catch {
+      // ignore
+    }
+    return undefined;
+  }
+
+  public forSource(source: string) {
+    return {
+      debug: (message: string, data?: Record<string, unknown> | unknown) => this.debug(message, data, source),
+      info: (message: string, data?: Record<string, unknown> | unknown) => this.info(message, data, source),
+      warn: (message: string, data?: Record<string, unknown> | unknown) => this.warn(message, data, source),
+      error: (message: string, data?: Record<string, unknown> | unknown) => this.error(message, data, source),
+      fatal: (message: string, data?: Record<string, unknown> | unknown) => this.fatal(message, data, source),
+      api: {
+        request: (method: string, url: string, data?: Record<string, unknown> | unknown) => this.apiRequest(method, url, data),
+        response: (method: string, url: string, status: number, data?: Record<string, unknown> | unknown) => this.apiResponse(method, url, status, data),
+      },
+      user: (action: string, data?: Record<string, unknown> | unknown) => this.userAction(action, data),
+      performance: (metric: string, value: number, unit?: string) => this.performanceMetric(metric, value, unit),
+      exception: (error: Error, context?: string) => this.exception(error, `${source}${context ? `:${context}` : ''}`),
+      security: (event: string, data?: Record<string, unknown> | unknown) => this.security(event, data),
+    };
   }
 
   private createLogEntry(
     level: LogLevel,
     message: string,
-    data?: any,
+    data?: Record<string, unknown> | unknown,
     source?: string
   ): LogEntry {
     return {
@@ -84,7 +125,7 @@ export class Logger {
       message,
       timestamp: Date.now(),
       data,
-      source,
+      source: this.detectSource(source),
       sessionId: this.sessionId,
       url: typeof window !== 'undefined' ? window.location.href : undefined,
       userAgent: typeof window !== 'undefined' ? window.navigator.userAgent : undefined
@@ -156,7 +197,7 @@ export class Logger {
     }
   }
 
-  private log(level: LogLevel, message: string, data?: any, source?: string): void {
+  private log(level: LogLevel, message: string, data?: Record<string, unknown> | unknown, source?: string): void {
     const entry = this.createLogEntry(level, message, data, source);
     
     this.logToConsole(entry);
@@ -170,37 +211,37 @@ export class Logger {
   }
 
   // Public logging methods
-  public debug(message: string, data?: any, source?: string): void {
+  public debug(message: string, data?: Record<string, unknown> | unknown, source?: string): void {
     this.log(LogLevel.DEBUG, message, data, source);
   }
 
-  public info(message: string, data?: any, source?: string): void {
+  public info(message: string, data?: Record<string, unknown> | unknown, source?: string): void {
     this.log(LogLevel.INFO, message, data, source);
   }
 
-  public warn(message: string, data?: any, source?: string): void {
+  public warn(message: string, data?: Record<string, unknown> | unknown, source?: string): void {
     this.log(LogLevel.WARN, message, data, source);
   }
 
-  public error(message: string, data?: any, source?: string): void {
+  public error(message: string, data?: Record<string, unknown> | unknown, source?: string): void {
     this.log(LogLevel.ERROR, message, data, source);
   }
 
-  public fatal(message: string, data?: any, source?: string): void {
+  public fatal(message: string, data?: Record<string, unknown> | unknown, source?: string): void {
     this.log(LogLevel.FATAL, message, data, source);
   }
 
   // Specialized logging methods
-  public apiRequest(method: string, url: string, data?: any): void {
+  public apiRequest(method: string, url: string, data?: Record<string, unknown> | unknown): void {
     this.info(`API Request: ${method} ${url}`, data, 'API');
   }
 
-  public apiResponse(method: string, url: string, status: number, data?: any): void {
+  public apiResponse(method: string, url: string, status: number, data?: Record<string, unknown> | unknown): void {
     const level = status >= 400 ? LogLevel.ERROR : LogLevel.INFO;
     this.log(level, `API Response: ${method} ${url} - ${status}`, data, 'API');
   }
 
-  public userAction(action: string, data?: any): void {
+  public userAction(action: string, data?: Record<string, unknown> | unknown): void {
     this.info(`User Action: ${action}`, data, 'USER');
   }
 
@@ -217,7 +258,7 @@ export class Logger {
     }, 'EXCEPTION');
   }
 
-  public security(event: string, data?: any): void {
+  public security(event: string, data?: Record<string, unknown> | unknown): void {
     this.warn(`Security Event: ${event}`, data, 'SECURITY');
   }
 
@@ -314,14 +355,14 @@ export class Logger {
   }
 
   // Table logging
-  public table(data: any): void {
+  public table(data: unknown): void {
     if (this.enableConsole) {
       console.table(data);
     }
   }
 
   // Assert logging
-  public assert(condition: boolean, message: string, data?: any): void {
+  public assert(condition: boolean, message: string, data?: Record<string, unknown> | unknown): void {
     if (!condition) {
       this.error(`Assertion failed: ${message}`, data, 'ASSERT');
       if (this.enableConsole) {
@@ -334,24 +375,3 @@ export class Logger {
 // Export singleton instance
 export const logger = Logger.getInstance();
 
-// Helper functions
-export const log = {
-  debug: (message: string, data?: any, source?: string) => logger.debug(message, data, source),
-  info: (message: string, data?: any, source?: string) => logger.info(message, data, source),
-  warn: (message: string, data?: any, source?: string) => logger.warn(message, data, source),
-  error: (message: string, data?: any, source?: string) => logger.error(message, data, source),
-  fatal: (message: string, data?: any, source?: string) => logger.fatal(message, data, source),
-  
-  // Specialized
-  api: {
-    request: (method: string, url: string, data?: any) => logger.apiRequest(method, url, data),
-    response: (method: string, url: string, status: number, data?: any) => 
-      logger.apiResponse(method, url, status, data)
-  },
-  
-  user: (action: string, data?: any) => logger.userAction(action, data),
-  performance: (metric: string, value: number, unit?: string) => 
-    logger.performanceMetric(metric, value, unit),
-  exception: (error: Error, context?: string) => logger.exception(error, context),
-  security: (event: string, data?: any) => logger.security(event, data)
-};

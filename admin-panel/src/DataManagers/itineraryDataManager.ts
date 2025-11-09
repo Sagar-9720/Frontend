@@ -1,6 +1,8 @@
-import { useState, useEffect } from "react";
+import { useResource, useMutationWithRefetch } from '../utils/dataManagerFactory';
+import { DATA_MANAGER } from '../utils/constants/dataManager';
 import { itineraryService } from "../services/itineraryService";
 import { Itinerary as BackendItinerary } from "../models/entity/Itinerary";
+import { useCallback, useMemo } from 'react';
 
 // UI type for Itinerary, matching all fields needed by the UI
 export interface ItineraryUI {
@@ -21,72 +23,59 @@ export interface ItineraryUI {
   accommodation?: string;
 }
 
+const mapBackendToUI = (data: BackendItinerary[]): ItineraryUI[] => (
+  data.map((it: BackendItinerary) => ({
+    id: ((it as unknown as { id?: string | number }).id ?? "").toString(),
+    title: (it as unknown as { itineraryName?: string; title?: string }).itineraryName || (it as unknown as { title?: string }).title || "",
+    description: (it as unknown as { description?: string }).description || "",
+    tripId: (it as unknown as { tripId?: string | number }).tripId ? String((it as unknown as { tripId?: string | number }).tripId) : "",
+    tripTitle: (it as unknown as { tripTitle?: string; trip?: { title?: string } }).tripTitle || ((it as unknown as { trip?: { title?: string } }).trip?.title ?? ""),
+    duration: (it as unknown as { dayNumber?: number; duration?: number }).dayNumber || (it as unknown as { duration?: number }).duration || 1,
+    status: (it as unknown as { status?: ItineraryUI['status'] }).status || "draft",
+    isFeatured: (it as unknown as { isFeatured?: boolean }).isFeatured || false,
+    likes: (it as unknown as { likes?: number }).likes || 0,
+    views: (it as unknown as { views?: number }).views || 0,
+    createdBy: (it as unknown as { createdBy?: string }).createdBy || "",
+    createdAt: (it as unknown as { createdAt?: string }).createdAt || "",
+    activities: (it as unknown as { activities?: string[] }).activities || [],
+    meals: (it as unknown as { meals?: string[] }).meals || [],
+    accommodation: (it as unknown as { accommodation?: string }).accommodation || "",
+  }))
+);
+
 export const useItineraries = () => {
-  const [itineraries, setItineraries] = useState<ItineraryUI[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchItineraries = async () => {
-    setLoading(true);
-    try {
-      const response = await itineraryService.getItineraries();
-      const data: BackendItinerary[] = response.data || [];
-      // Map backend model to UI type
-      const mapped: ItineraryUI[] = data.map((it: any) => ({
-        id: (it.id ?? "").toString(),
-        title: it.itineraryName || it.title || "",
-        description: it.description || "",
-        tripId: it.tripId ? it.tripId.toString() : "",
-        tripTitle: it.tripTitle || (it.trip ? it.trip.title : ""),
-        duration: it.dayNumber || it.duration || 1,
-        status: it.status || "draft",
-        isFeatured: it.isFeatured || false,
-        likes: it.likes || 0,
-        views: it.views || 0,
-        createdBy: it.createdBy || "",
-        createdAt: it.createdAt || "",
-        activities: it.activities || [],
-        meals: it.meals || [],
-        accommodation: it.accommodation || "",
-      }));
-      setItineraries(mapped);
-      setError(null);
-    } catch (err) {
-      setError("Failed to load itineraries");
-      setItineraries([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    let debounceTimer: ReturnType<typeof setTimeout>;
-    setLoading(true);
-    debounceTimer = setTimeout(() => {
-      fetchItineraries();
-    }, 300);
-    return () => {
-      clearTimeout(debounceTimer);
-    };
+  const fetchFn = useCallback(async () => {
+    const response = await itineraryService.getItineraries();
+    return Array.isArray(response) ? response : [];
   }, []);
 
-  // Mutation handlers
-  const createItinerary = async (payload: Partial<ItineraryUI>) => {
-    await itineraryService.createItinerary(payload);
-    await fetchItineraries();
-  };
+  const mapListFn = useCallback((raw: BackendItinerary[]) => mapBackendToUI(raw), []);
 
-  const updateItinerary = async (id: string, payload: Partial<ItineraryUI>) => {
-    await itineraryService.updateItinerary(id, payload);
-    await fetchItineraries();
-  };
+  const { data, loading, error, refetch } = useResource<ItineraryUI, BackendItinerary[]>({
+    sourceName: 'ItineraryDataManager',
+    fetchFn,
+    mapListFn,
+    isList: true,
+    errorMessage: DATA_MANAGER.ERRORS.ITINERARIES,
+  });
 
-  return {
-    itineraries,
+  const createItinerary = useMutationWithRefetch(
+    async (payload: Partial<ItineraryUI>) => itineraryService.createItinerary(payload),
+    refetch,
+    'ItineraryDataManager'
+  );
+  const updateItinerary = useMutationWithRefetch(
+    async (id: string, payload: Partial<ItineraryUI>) => itineraryService.updateItinerary(id, payload),
+    refetch,
+    'ItineraryDataManager'
+  );
+
+  return useMemo(() => ({
+    itineraries: (data as ItineraryUI[]) || [],
     loading,
     error,
-    refetch: fetchItineraries,
+    refetch,
     createItinerary,
     updateItinerary,
-  };
+  }), [data, loading, error, refetch, createItinerary, updateItinerary]);
 };

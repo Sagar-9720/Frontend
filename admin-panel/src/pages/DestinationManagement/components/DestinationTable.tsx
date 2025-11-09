@@ -8,19 +8,22 @@ interface DestinationTableProps {
   destinations: Destination[];
   loading: boolean;
   onEdit: (destination: Destination) => void;
+  renderStatus?: (destination: Destination) => React.ReactNode;
 }
 
 export const DestinationTable: React.FC<DestinationTableProps> = ({
   destinations = [],
   loading = false,
   onEdit,
+  renderStatus,
 }) => {
   try {
     // Safe destination name renderer with image
-    const renderDestinationName = (value: string, destination: Destination) => {
+    const renderDestinationName = (value: unknown, destination: Destination) => {
+      const val = typeof value === 'string' ? value : '';
       try {
         const imageSrc = destination?.imageUrl || '/placeholder-image.jpg';
-        const destinationName = value || 'Unknown Destination';
+        const destinationName = val || 'Unknown Destination';
         const regionName = destination?.region?.name || "No region";
 
         return (
@@ -57,9 +60,9 @@ export const DestinationTable: React.FC<DestinationTableProps> = ({
     };
 
     // Safe description renderer
-    const renderDescription = (value: string) => {
+    const renderDescription = (value: unknown) => {
       try {
-        return value || "No description";
+        return (typeof value === 'string' && value) || "No description";
       } catch (error) {
         console.error('Error rendering description:', error);
         return "Error loading description";
@@ -67,7 +70,7 @@ export const DestinationTable: React.FC<DestinationTableProps> = ({
     };
 
     // Safe region renderer
-    const renderRegion = (_: any, destination: Destination) => {
+    const renderRegion = (_: unknown, destination: Destination) => {
       try {
         const regionName = destination?.region?.name || 'Unknown';
         const countryName = destination?.region?.country?.name || "N/A";
@@ -87,7 +90,7 @@ export const DestinationTable: React.FC<DestinationTableProps> = ({
     };
 
     // Safe actions renderer
-    const renderActions = (_: any, destination: Destination) => {
+    const renderActions = (_: unknown, destination: Destination) => {
       try {
         const handleEdit = () => {
           try {
@@ -137,12 +140,13 @@ export const DestinationTable: React.FC<DestinationTableProps> = ({
         sortable: true,
         render: renderRegion,
       },
+      ...(renderStatus ? [{ key: 'status', label: 'Status', render: (_: unknown, d: Destination) => renderStatus(d) }] : []),
       {
         key: "actions",
         label: "Actions",
         render: renderActions,
       },
-    ];
+    ] as const;
 
     // Validate destinations data
     if (!Array.isArray(destinations)) {
@@ -155,10 +159,10 @@ export const DestinationTable: React.FC<DestinationTableProps> = ({
     }
 
     return (
-      <Table 
-        columns={columns} 
-        data={destinations} 
-        loading={loading} 
+      <Table
+        columns={columns as any}
+        data={destinations as any}
+        loading={loading}
       />
     );
   } catch (error) {

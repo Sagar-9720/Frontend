@@ -1,19 +1,20 @@
 import React from "react";
 import { ChevronUp, ChevronDown } from "lucide-react";
-import { MESSAGE_STRINGS } from "../../utils";
 
-interface Column {
+interface TableColumn<T extends TableRow> {
   key: string;
   label: string;
   sortable?: boolean;
-  render?: (value: any, row: any) => React.ReactNode;
+  render?: (value: unknown, row: T) => React.ReactNode;
   align?: "left" | "center" | "right";
-  width?: string;
+  width?: string | number;
 }
 
-interface TableProps {
-  columns: Column[];
-  data: any[];
+type TableRow = Record<string, unknown>;
+
+interface TableProps<T extends TableRow = TableRow> {
+  columns: TableColumn<T>[];
+  data: T[];
   onSort?: (key: string, direction: "asc" | "desc") => void;
   sortKey?: string;
   sortDirection?: "asc" | "desc";
@@ -22,7 +23,7 @@ interface TableProps {
   variant?: "default" | "striped";
 }
 
-export const Table: React.FC<TableProps> = ({
+export const Table = <T extends TableRow = TableRow>({
   columns = [],
   data = [],
   onSort,
@@ -31,7 +32,7 @@ export const Table: React.FC<TableProps> = ({
   loading = false,
   emptyMessage = "No data available",
   variant = "default",
-}) => {
+}: TableProps<T>) => {
   const handleSort = (key: string) => {
     if (!onSort) return;
 
@@ -73,14 +74,14 @@ export const Table: React.FC<TableProps> = ({
                 className={`
                   px-6 py-3 text-xs font-semibold text-[var(--color-text-secondary)] 
                   uppercase tracking-wider transition-colors
-                  ${getAlignmentClass(column.align)}
+                  ${getAlignmentClass(column.align ?? 'left')}
                   ${
                     column.sortable
                       ? "cursor-pointer hover:bg-[var(--color-surface)] hover:text-[var(--color-text-primary)]"
                       : ""
                   }
                 `}
-                style={{ width: column.width }}
+                style={column.width ? { width: column.width } : undefined}
                 onClick={() => column.sortable && handleSort(column.key)}
               >
                 <div className="flex items-center space-x-1">
@@ -135,17 +136,17 @@ export const Table: React.FC<TableProps> = ({
                   }
                 `}
               >
-                {columns.map((column) => (
+                {columns.map((col) => (
                   <td
-                    key={column.key}
+                    key={col.key}
                     className={`
                       px-6 py-4 whitespace-nowrap text-sm text-[var(--color-text-primary)]
-                      ${getAlignmentClass(column.align)}
+                      ${getAlignmentClass(col.align ?? 'left')}
                     `}
                   >
-                    {column.render
-                      ? column.render(row[column.key], row)
-                      : row[column.key]}
+                    {col.render
+                      ? col.render(row[col.key], row)
+                      : (row[col.key] as React.ReactNode)}
                   </td>
                 ))}
               </tr>
@@ -156,3 +157,5 @@ export const Table: React.FC<TableProps> = ({
     </div>
   );
 };
+
+Table.displayName = "Table";

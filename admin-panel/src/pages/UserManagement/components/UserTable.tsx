@@ -16,14 +16,14 @@ function getUserColumns(
   onDelete: (id: string) => void
 ) {
   try {
-    return [
+    const columns: { key: string; label: string; sortable?: boolean; render?: (value: unknown, row: User) => React.ReactNode }[] = [
       {
         key: "name",
         label: "Name",
         sortable: true,
-        render: (name: string) => {
+        render: (name: unknown) => {
           try {
-            return name || 'N/A';
+            return (name as string) || 'N/A';
           } catch (error) {
             console.error('Error rendering name:', error);
             return 'Error';
@@ -34,9 +34,9 @@ function getUserColumns(
         key: "email",
         label: "Email",
         sortable: true,
-        render: (email: string) => {
+        render: (email: unknown) => {
           try {
-            return email || 'N/A';
+            return (email as string) || 'N/A';
           } catch (error) {
             console.error('Error rendering email:', error);
             return 'Error';
@@ -47,9 +47,9 @@ function getUserColumns(
         key: "roles",
         label: "Role",
         sortable: true,
-        render: (role: string) => {
+        render: (role: unknown) => {
           try {
-            return role || 'N/A';
+            return (role as string) || 'N/A';
           } catch (error) {
             console.error('Error rendering role:', error);
             return 'Error';
@@ -59,9 +59,9 @@ function getUserColumns(
       {
         key: "status",
         label: "Status",
-        render: (value: string) => {
+        render: (value: unknown) => {
           try {
-            const status = value || 'unknown';
+            const status = (value as string) || 'unknown';
             return (
               <span
                 className={`px-2 py-1 rounded text-xs ${
@@ -84,18 +84,19 @@ function getUserColumns(
       {
         key: "actions",
         label: "Actions",
-        render: (_: any, user: User) => {
+        render: (_: unknown, user: User) => {
           try {
+            const id = user?.userId;
             return (
               <div className="flex space-x-2">
-                {(user as any)?.status === "inactive" && (
+                {(user as unknown as { status?: string })?.status === "inactive" && (
                   <Button
                     size="sm"
                     variant="outline"
                     onClick={() => {
                       try {
-                        if (user?.userId) {
-                          onApproveDelete(user.userId.toString());
+                        if (id !== undefined && id !== null) {
+                          onApproveDelete(String(id));
                         }
                       } catch (error) {
                         console.error('Error approving delete:', error);
@@ -111,8 +112,8 @@ function getUserColumns(
                   variant="danger"
                   onClick={() => {
                     try {
-                      if (user?.userId) {
-                        onDelete(user.userId.toString());
+                      if (id !== undefined && id !== null) {
+                        onDelete(String(id));
                       }
                     } catch (error) {
                       console.error('Error deleting user:', error);
@@ -131,6 +132,7 @@ function getUserColumns(
         },
       },
     ];
+    return columns;
   } catch (error) {
     console.error('Error creating user columns:', error);
     return [];
@@ -150,7 +152,7 @@ const UserTable: React.FC<UserTableProps> = ({
     return (
       <div>
         <div className="flex justify-end mb-2"></div>
-        <Table columns={columns} data={safeUsers} loading={loading} />
+        <Table columns={columns} data={safeUsers} loading={loading} emptyMessage="No users found" />
       </div>
     );
   } catch (error) {

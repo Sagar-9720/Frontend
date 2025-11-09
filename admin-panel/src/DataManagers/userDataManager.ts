@@ -1,55 +1,75 @@
 import { userService } from "../services/userService";
 import { authService } from "../services/authService";
-import { useEffect } from "react";
+import { useResource, useMutationWithRefetch } from "../utils/dataManagerFactory";
+import { DATA_MANAGER } from "../utils/constants/dataManager";
+import { User } from "../models/entity/User";
+
+// Shape that auth endpoints may return
+interface ApiListResponse<T> { success?: boolean; data?: T[]; [k: string]: unknown }
 
 export const useUserData = () => {
-  const getUserComments = async (userId: string) => {
-    return await userService.getComments(userId);
-  };
+  // Users list resource
+  const { data: users, loading: usersLoading, error: usersError, refetch: refetchUsers, setData: setUsers } = useResource<User, ApiListResponse<User> | User[]>({
+    sourceName: 'UserDataManager:Users',
+    fetchFn: async () => {
+      const resp = await authService.getAllUsers();
+      if (resp && typeof resp === 'object' && 'data' in (resp as ApiListResponse<User>)) {
+        const dataVal = (resp as ApiListResponse<User>).data;
+        return Array.isArray(dataVal) ? dataVal : [];
+      }
+      return Array.isArray(resp) ? resp : [];
+    },
+    mapListFn: (raw) => Array.isArray(raw) ? raw as User[] : [],
+    isList: true,
+    errorMessage: DATA_MANAGER.ERRORS.USERS,
+  });
 
-  const getUserLikes = async (userId: string) => {
-    return await userService.getLikes(userId);
-  };
+  // Delete request users resource
+  const { data: deleteRequestUsers, loading: deleteReqLoading, error: deleteReqError, refetch: refetchDeleteRequests, setData: setDeleteRequestUsers } = useResource<User, ApiListResponse<User> | User[]>({
+    sourceName: 'UserDataManager:DeleteRequests',
+    fetchFn: async () => {
+      const resp = await authService.deleteUserRequest();
+      if (resp && typeof resp === 'object' && 'data' in (resp as ApiListResponse<User>)) {
+        const dataVal = (resp as ApiListResponse<User>).data;
+        return Array.isArray(dataVal) ? dataVal : [];
+      }
+      return Array.isArray(resp) ? resp : [];
+    },
+    mapListFn: (raw) => Array.isArray(raw) ? raw as User[] : [],
+    isList: true,
+    errorMessage: DATA_MANAGER.ERRORS.DELETE_REQUESTS,
+    autoStart: false,
+  });
 
-  const getUserSavedTrips = async (userId: string) => {
-    return await userService.getSavedTrips(userId);
-  };
+  // Mutations (delete returns maybe success flag)
+  interface DeleteResponse { success?: boolean; [k: string]: unknown }
+  const deleteUser = useMutationWithRefetch<[string], DeleteResponse>(
+    async (userId: string) => authService.deleteUser(userId) as Promise<DeleteResponse>,
+    refetchUsers,
+    'UserDataManager:DeleteUser'
+  );
 
-  const getUserViews = async (userId: string) => {
-    return await userService.getViews(userId);
-  };
-
-  // New functions from authService
-  const getAllUsers = async () => {
-    return await authService.getAllUsers();
-  };
-
-  const getRequestedDeleteUser = async () => {
-    return await authService.deleteUserRequest();
-  };
-
-  const deleteUser = async (userId: string) => {
-    return await authService.deleteUser(userId);
-  };
-
-  // Add the useEffect with debouncing
-  useEffect(() => {
-    let debounceTimer: ReturnType<typeof setTimeout>;
-    debounceTimer = setTimeout(() => {
-      getAllUsers();
-    }, 300);
-    return () => {
-      clearTimeout(debounceTimer);
-    };
-  }, []);
+  // Activity endpoints (pass-through)
+  const getUserComments = async (userId: string) => userService.getComments({ userId });
+  const getUserLikes = async (userId: string) => userService.getLikes({ userId });
+  const getUserSavedTrips = async (userId: string) => userService.getSavedTrips({ userId });
+  const getUserViews = async (userId: string) => userService.getViews({ userId });
 
   return {
+    users: (users as User[]) || [],
+    usersLoading,
+    usersError,
+    refetchUsers,
+    setUsers,
+    deleteRequestUsers: (deleteRequestUsers as User[]) || [],
+    deleteReqLoading,
+    deleteReqError,
+    refetchDeleteRequests,
+    setDeleteRequestUsers,
+    deleteUser,
     getUserComments,
     getUserLikes,
     getUserSavedTrips,
     getUserViews,
-    getAllUsers,
-    getRequestedDeleteUser,
-    deleteUser,
   };
 };

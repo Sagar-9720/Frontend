@@ -13,6 +13,7 @@ import Users from "../pages/UserManagement/Users";
 import Trips from "../pages/TripManagement/Trips";
 import { Navbar } from "../components/layout/Navbar";
 import { Sidebar } from "../components/layout/Sidebar";
+import ROUTES from "./routes";
 
 // Placeholder component for settings
 const Settings = () => (
@@ -28,17 +29,18 @@ const Settings = () => (
 export const AppRoutes: React.FC = () => {
   return (
     <Routes>
-      <Route path="/login" element={<Login />} />
-      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+      <Route path={ROUTES.LOGIN} element={<Login />} />
+      <Route path={ROUTES.ROOT} element={<Navigate to={ROUTES.DASHBOARD} replace />} />
       <Route
-        path="/dashboard"
+        path={ROUTES.DASHBOARD}
         element={
           <ProtectedRoute>
-            <div className="flex h-screen">
+            <div className="flex h-screen overflow-hidden">
               <Sidebar />
-              <div className="flex-1 flex flex-col">
+              {/* make main area a flex column with a scrollable content pane */}
+              <div className="flex-1 flex flex-col min-h-0">
                 <Navbar />
-                <div className="p-6 space-y-6">
+                <div className="p-6 space-y-6 overflow-auto flex-1 min-h-0">
                   <Dashboard />
                 </div>
               </div>
@@ -46,78 +48,28 @@ export const AppRoutes: React.FC = () => {
           </ProtectedRoute>
         }
       />
-      <Route
-        path="/sub-admins"
-        element={
-          <ProtectedRoute>
-            <SubAdminManagement />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/users"
-        element={
-          <ProtectedRoute>
-            <Users />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/destinations"
-        element={
-          <ProtectedRoute>
-            <Destinations />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/trips"
-        element={
-          <ProtectedRoute>
-            <Trips />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/itineraries"
-        element={
-          <ProtectedRoute>
-            <Itineraries />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/travel-journals"
-        element={
-          <ProtectedRoute>
-            <TravelJournals />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/regions"
-        element={
-          <ProtectedRoute>
-            <Regions />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/profile"
-        element={
-          <ProtectedRoute>
-            <Profile />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/settings"
-        element={
-          <ProtectedRoute>
-            <Settings />
-          </ProtectedRoute>
-        }
-      />
+      {/* Consolidate protected routes into a small config and map over them to avoid repetition */}
+      {(() => {
+        const protectedRoutes: { path: string; element: JSX.Element }[] = [
+          { path: ROUTES.SUB_ADMINS, element: <SubAdminManagement /> },
+          { path: ROUTES.USERS, element: <Users /> },
+          { path: ROUTES.DESTINATIONS, element: <Destinations /> },
+          { path: ROUTES.TRIPS, element: <Trips /> },
+          { path: ROUTES.ITINERARIES, element: <Itineraries /> },
+          { path: ROUTES.TRAVEL_JOURNALS, element: <TravelJournals /> },
+          { path: ROUTES.REGIONS, element: <Regions /> },
+          { path: ROUTES.PROFILE, element: <Profile /> },
+          { path: ROUTES.SETTINGS, element: <Settings /> },
+        ];
+
+        return protectedRoutes.map((r) => (
+          <Route
+            key={r.path}
+            path={r.path}
+            element={<ProtectedRoute>{r.element}</ProtectedRoute>}
+          />
+        ));
+      })()}
     </Routes>
   );
 };

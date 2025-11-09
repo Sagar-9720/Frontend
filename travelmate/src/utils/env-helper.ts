@@ -20,14 +20,14 @@ export class EnvironmentHelper {
       // API Configuration
       API_BASE_URL: import.meta.env.VITE_API_BASE_URL || "http://localhost",
       AUTH_SERVICE_URL:
-        import.meta.env.VITE_AUTH_SERVICE_URL || "http://localhost/auth/api",
+        import.meta.env.VITE_AUTH_SERVICE_URL || "http://localhost/api/auth",
       USER_SERVICE_URL:
-        import.meta.env.VITE_USER_SERVICE_URL || "http://localhost/user/api",
+        import.meta.env.VITE_USER_SERVICE_URL || "http://localhost/api/users",
       TRIP_SERVICE_URL:
-        import.meta.env.VITE_TRIP_SERVICE_URL || "http://localhost/trip/api",
+        import.meta.env.VITE_TRIP_SERVICE_URL || "http://localhost/api/trip",
       TRAVEL_JOURNAL_SERVICE_URL:
         import.meta.env.VITE_TRAVEL_JOURNAL_SERVICE_URL ||
-        "http://localhost/journal/api",
+        "http://localhost/api/journal",
       API_TIMEOUT: parseInt(import.meta.env.VITE_API_TIMEOUT || "30000"),
 
       // App Configuration

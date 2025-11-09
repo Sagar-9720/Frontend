@@ -55,6 +55,18 @@ export const API_ENDPOINTS = {
     TRIP_GET_NAME: "/trips/get-trip-name",
   },
 
+  // Dashboard Endpoints (served by Trip service in this setup)
+  DASHBOARD: {
+    OVERVIEW: "/dashboard/overview",
+    USER_STATS: "/dashboard/user-stats",
+    TRIP_STATS: "/dashboard/trip-stats",
+    REVENUE_STATS: "/dashboard/revenue-stats",
+    ANALYTICS: "/dashboard/analytics",
+    RECENT_ACTIVITIES: "/dashboard/recent-activities",
+    SYSTEM_HEALTH: "/dashboard/system-health",
+    NOTIFICATIONS: "/dashboard/notifications",
+  },
+
   // Destination Service Endpoints
   DESTINATION: {
     DESTINATIONS: "/destinations",
@@ -191,22 +203,5 @@ export { regionService } from "./regionService";
 export { travelJournalService } from "./travelJournalService";
 export { countryService } from "./countryService";
 export { uploadService } from "./uploadService";
-export { TagService } from "./tagService";
 export { destinationService } from "./destinationService";
 
-// Service instances for easy access
-export default {
-  auth: () => import("./authService").then((m) => m.authService),
-  user: () => import("./userService").then((m) => m.userService),
-  trip: () => import("./tripService").then((m) => m.tripService),
-  dashboard: () => import("./dashboardService").then((m) => m.dashboardService),
-  itinerary: () => import("./itineraryService").then((m) => m.itineraryService),
-  region: () => import("./regionService").then((m) => m.regionService),
-  travelJournal: () =>
-    import("./travelJournalService").then((m) => m.travelJournalService),
-  country: () => import("./countryService").then((m) => m.countryService),
-  upload: () => import("./uploadService").then((m) => m.uploadService),
-  tag: () => import("./tagService").then((m) => m.TagService),
-  destination: () =>
-    import("./destinationService").then((m) => m.destinationService),
-};

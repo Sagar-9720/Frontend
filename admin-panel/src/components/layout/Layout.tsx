@@ -22,12 +22,14 @@ export const GenericLayout: React.FC<GenericLayoutProps> = ({
   modal,
   errorSection,
 }) => (
-  <div className="flex h-screen">
+  <div className="flex h-screen overflow-hidden">
     <Sidebar />
-    <div className="flex-1 flex flex-col">
+    <div className="flex-1 flex flex-col min-h-0">
       <Navbar />
-      <div className="p-6 space-y-6">
-        <div className="flex items-center justify-between">
+      <div className="p-6 space-y-6 overflow-y-auto flex-1">
+        {/* scrollable content area */}
+        <div className="flex items-center justify-between top-0 bg-white/90 backdrop-blur z-10 py-2 -mt-2 -mx-6 px-6">
+          {/* keep header visible while scrolling */}
           <div>
             <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
             {subtitle && <p className="text-gray-600">{subtitle}</p>}

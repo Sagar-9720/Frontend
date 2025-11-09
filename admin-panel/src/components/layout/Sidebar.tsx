@@ -4,8 +4,7 @@ import {
   LayoutDashboard, 
   Users, 
   UserCheck, 
-  Shield, 
-  MapPin, 
+  MapPin,
   Route, 
   Calendar, 
   BookOpen,
@@ -14,21 +13,29 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { APP_STRINGS, NAVIGATION_STRINGS, BUTTON_STRINGS } from '../../utils';
+import ROUTES from '../../routes/routes';
 
 const navigation = [
-  { name: NAVIGATION_STRINGS.DASHBOARD, href: '/dashboard', icon: LayoutDashboard },
-  { name: NAVIGATION_STRINGS.SUB_ADMINS, href: '/sub-admins', icon: UserCheck },
-  { name: NAVIGATION_STRINGS.USERS, href: '/users', icon: Users },
-  { name: NAVIGATION_STRINGS.REGIONS, href: '/regions', icon: Globe },
-  { name: NAVIGATION_STRINGS.DESTINATIONS, href: '/destinations', icon: MapPin },
-  { name: NAVIGATION_STRINGS.TRIPS, href: '/trips', icon: Route },
-  { name: NAVIGATION_STRINGS.ITINERARIES, href: '/itineraries', icon: Calendar },
-  { name: NAVIGATION_STRINGS.TRAVEL_JOURNALS, href: '/travel-journals', icon: BookOpen },
+  { name: NAVIGATION_STRINGS.DASHBOARD, href: ROUTES.DASHBOARD, icon: LayoutDashboard },
+  { name: NAVIGATION_STRINGS.SUB_ADMINS, href: ROUTES.SUB_ADMINS, icon: UserCheck },
+  { name: NAVIGATION_STRINGS.USERS, href: ROUTES.USERS, icon: Users },
+  { name: NAVIGATION_STRINGS.REGIONS, href: ROUTES.REGIONS, icon: Globe },
+  { name: NAVIGATION_STRINGS.DESTINATIONS, href: ROUTES.DESTINATIONS, icon: MapPin },
+  { name: NAVIGATION_STRINGS.TRIPS, href: ROUTES.TRIPS, icon: Route },
+  { name: NAVIGATION_STRINGS.ITINERARIES, href: ROUTES.ITINERARIES, icon: Calendar },
+  { name: NAVIGATION_STRINGS.TRAVEL_JOURNALS, href: ROUTES.TRAVEL_JOURNALS, icon: BookOpen },
 ];
 
 export const Sidebar: React.FC = () => {
   const location = useLocation();
-  const { logout } = useAuth();
+  const auth = useAuth();
+  const handleLogout = async () => {
+    try {
+      await auth?.logout?.();
+    } catch {
+      // ignore
+    }
+  };
 
   return (
     <div className="flex flex-col w-64 bg-[var(--color-sidebar-bg)] text-[var(--color-sidebar-text)] h-full border-r border-[var(--color-border)]">
@@ -58,7 +65,7 @@ export const Sidebar: React.FC = () => {
 
       <div className="px-4 py-6 border-t border-[var(--color-border)]">
         <button
-          onClick={logout}
+          onClick={handleLogout}
           className="flex items-center w-full px-4 py-2 text-sm font-medium text-[var(--color-sidebar-text-secondary)] rounded-[var(--radius-md)] hover:bg-[var(--color-sidebar-hover)] hover:text-[var(--color-sidebar-text)] transition-colors"
         >
           <LogOut className="mr-3 h-5 w-5" />

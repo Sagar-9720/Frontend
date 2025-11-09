@@ -174,7 +174,8 @@ export const PLACEHOLDER_STRINGS = {
   SELECT_OPTION: 'Select an option',
   CHOOSE_FILE: 'Choose a file',
   TYPE_TO_SEARCH: 'Type to search...',
-  NO_OPTIONS: 'No options available'
+  NO_OPTIONS: 'No options available',
+  SIGN_IN_TO_YOUR_ACCOUNT: 'Sign in to your account'
 } as const;
 
 export const STATUS_STRINGS = {
@@ -191,7 +192,64 @@ export const STATUS_STRINGS = {
   DISABLED: 'Disabled'
 } as const;
 
+// Page titles
+export const PAGE_TITLES = {
+  DASHBOARD: 'Dashboard',
+  USER_MANAGEMENT: 'User Management',
+  SUB_ADMIN_MANAGEMENT: 'Sub-Admin Management',
+  REGION_MANAGEMENT: 'Region Management',
+  COUNTRY_MANAGEMENT: 'Country Management',
+  DESTINATION_MANAGEMENT: 'Destination Management',
+  TRIP_MANAGEMENT: 'Trip Management',
+  ITINERARY_MANAGEMENT: 'Itinerary Management',
+  TRAVEL_JOURNAL_MANAGEMENT: 'Travel Journal Management',
+  PROFILE: 'Profile',
+  SETTINGS: 'Settings'
+} as const;
+
+// Page subtitles
+export const PAGE_SUBTITLES = {
+  DASHBOARD: 'Overview and statistics',
+  USER_MANAGEMENT: 'Manage users',
+  SUB_ADMIN_MANAGEMENT: 'Manage sub-admins',
+  REGION_MANAGEMENT: 'Manage regions and their countries',
+  COUNTRY_MANAGEMENT: 'Manage countries',
+  DESTINATION_MANAGEMENT: 'Manage destinations',
+  TRIP_MANAGEMENT: 'Manage trips',
+  ITINERARY_MANAGEMENT: 'Manage trip itineraries and schedules',
+  TRAVEL_JOURNAL_MANAGEMENT: 'Manage travel journals',
+  PROFILE: 'Profile settings',
+  SETTINGS: 'Application settings'
+} as const;
+
+// Standard HTML input types as constants for reuse & type safety
+export const INPUT_TYPES = {
+  TEXT: 'text',
+  EMAIL: 'email',
+  PASSWORD: 'password',
+  NUMBER: 'number',
+  DATE: 'date',
+  DATETIME_LOCAL: 'datetime-local',
+  TIME: 'time',
+  FILE: 'file',
+  SEARCH: 'search',
+  URL: 'url',
+  TEL: 'tel',
+  CHECKBOX: 'checkbox',
+  RADIO: 'radio',
+  RANGE: 'range',
+  COLOR: 'color',
+  HIDDEN: 'hidden',
+  SUBMIT: 'submit',
+} as const;
+
 export type AppString = keyof typeof APP_STRINGS;
 export type NavigationString = keyof typeof NAVIGATION_STRINGS;
 export type ButtonString = keyof typeof BUTTON_STRINGS;
 export type StatusString = keyof typeof STATUS_STRINGS;
+export type PageTitleString = keyof typeof PAGE_TITLES;
+export type PageSubtitleString = keyof typeof PAGE_SUBTITLES;
+// Value union of supported input type strings
+export type InputTypeString = typeof INPUT_TYPES[keyof typeof INPUT_TYPES];
+// Key union (if you need referencing by key)
+export type InputType = keyof typeof INPUT_TYPES;

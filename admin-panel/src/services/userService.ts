@@ -1,45 +1,12 @@
 // User Service - Handles all user-related API calls for comments, likes, saved trips, and views
-import { httpClient } from "../utils/http-client";
 import { buildUserUrl } from "./api";
+import { createServiceClient, withQuery } from "../utils/serviceFactory";
+
+const client = createServiceClient('UserService');
 
 export const userService = {
-  // Get all comments
-  async getComments(params?: any) {
-    const queryString = params
-      ? `?${new URLSearchParams(params).toString()}`
-      : "";
-    const endpoint = buildUserUrl("/api/users/comments") + queryString;
-    const response = await httpClient.get(endpoint);
-    return response.data;
-  },
-
-  // Get all likes
-  async getLikes(params?: any) {
-    const queryString = params
-      ? `?${new URLSearchParams(params).toString()}`
-      : "";
-    const endpoint = buildUserUrl("/api/users/like") + queryString;
-    const response = await httpClient.get(endpoint);
-    return response.data;
-  },
-
-  // Get all saved trips
-  async getSavedTrips(params?: any) {
-    const queryString = params
-      ? `?${new URLSearchParams(params).toString()}`
-      : "";
-    const endpoint = buildUserUrl("/api/users/saved-trips") + queryString;
-    const response = await httpClient.get(endpoint);
-    return response.data;
-  },
-
-  // Get all views (if needed, usually just increaseView)
-  async getViews(params?: any) {
-    const queryString = params
-      ? `?${new URLSearchParams(params).toString()}`
-      : "";
-    const endpoint = buildUserUrl("/api/users/view") + queryString;
-    const response = await httpClient.get(endpoint);
-    return response.data;
-  },
+  getComments: (params?: Record<string,string|number|boolean>) => client.get(withQuery(buildUserUrl("/api/users/comments"), params)),
+  getLikes: (params?: Record<string,string|number|boolean>) => client.get(withQuery(buildUserUrl("/api/users/like"), params)),
+  getSavedTrips: (params?: Record<string,string|number|boolean>) => client.get(withQuery(buildUserUrl("/api/users/saved-trips"), params)),
+  getViews: (params?: Record<string,string|number|boolean>) => client.get(withQuery(buildUserUrl("/api/users/view"), params)),
 };
