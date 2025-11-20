@@ -15,12 +15,15 @@ import {
 } from "lucide-react";
 import { DashboardStatsItem, ContentItem, DashboardData } from "../../models/Dashboard";
 import { useDashboardData } from "../../DataManagers/dashboardDataManager";
+import { ResourceGate } from "../../components/common/ResourceGate";
+import { usePageResourceState } from "../../hooks/usePageResourceState";
 import { logger } from "../../utils";
 
 const log = logger.forSource('DashboardPage');
 
 export const Dashboard: React.FC = () => {
-  const { dashboardData, loading, error, refetch } = useDashboardData();
+  const { dashboardData, loading, error, refetch, status, hasFetched } = useDashboardData();
+  const page = usePageResourceState({ status, hasFetched, error }, dashboardData);
 
   const renderContentList = (
     items: ContentItem[] | undefined,
@@ -67,25 +70,6 @@ export const Dashboard: React.FC = () => {
     }
   };
 
-  // Remove early returns; show inline banners instead
-  const errorBanner = error ? (
-    <div className="mb-4 p-4 rounded border border-red-200 bg-red-50 flex items-center justify-between">
-      <span className="text-red-700 text-sm font-medium">{error}</span>
-      <button
-        onClick={() => refetch()}
-        className="text-sm px-3 py-1 rounded bg-red-600 text-white hover:bg-red-700"
-      >
-        Retry
-      </button>
-    </div>
-  ) : null;
-
-  const loadingBanner = loading ? (
-    <div className="mb-4 p-4 rounded border border-yellow-200 bg-yellow-50 text-yellow-700 text-sm">
-      Loading latest dashboard data...
-    </div>
-  ) : null;
-
   const safeData = dashboardData || {
     stats: [],
     mostCommented: { trips: [], itineraries: [], destinations: [] },
@@ -96,6 +80,12 @@ export const Dashboard: React.FC = () => {
 
   try {
     return (
+      <ResourceGate
+        loading={page.initialLoading}
+        error={error}
+        onRetry={refetch}
+        showError={page.showError}
+      >
       <div className="space-y-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
@@ -103,8 +93,6 @@ export const Dashboard: React.FC = () => {
             Welcome back! Here's what's happening with your travel platform.
           </p>
         </div>
-        {errorBanner}
-        {loadingBanner}
         {/* Stats Grid */}
         <DashboardStats
           stats={safeData?.stats?.map((stat: DashboardStatsItem) => ({
@@ -326,6 +314,7 @@ export const Dashboard: React.FC = () => {
           </div>
         </div>
       </div>
+      </ResourceGate>
     );
   } catch (error) {
     log.error("Error rendering dashboard", error as unknown);

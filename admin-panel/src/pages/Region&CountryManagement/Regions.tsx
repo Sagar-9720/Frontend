@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { RegionTable } from "./components/RegionTable";
 import { RegionFormModal } from "./components/RegionFormModal";
 import { CountryFormModal } from "./components/CountryFormModal";
@@ -7,30 +7,49 @@ import { Country } from "../../models/entity/Country";
 import { CountryTable } from "./components/CountryTable";
 import { GenericLayout } from "../../components/layout/Layout";
 import { useRegionsAndCountries } from "../../DataManagers/regionDataManager";
-import { countryService } from "../../services/countryService";
 import { logger } from "../../utils";
 import { PaneSwitch } from "../../components/common/PaneSwitch";
-import { ErrorBanner } from "../../components/common/ErrorBanner";
 import { PAGE_TITLES, PAGE_SUBTITLES } from "../../utils";
 import { RegionFilters } from "./sections/RegionFilters";
 import { CountryFilters } from "./sections/CountryFilters";
+import { ResourceGate } from "../../components/common/ResourceGate";
+import { usePageResourceState } from "../../hooks/usePageResourceState";
 
 const log = logger.forSource('RegionsPage');
 
 const Regions: React.FC = () => {
-  // Safe hook usage with error handling
   const regionData = useRegionsAndCountries();
+  const debug = true;
   const {
     regions = [],
-    regionLoading: isLoading = false,
+    regionLoading,
+    regionError,
+    regionStatus,
+    regionHasFetched,
     refetchRegions,
+    countries = [],
+    countryLoading,
+    countryError,
+    countryStatus,
+    countryHasFetched,
+    refetchCountries,
     createRegion,
     updateRegion,
     createCountry,
     updateCountry,
   } = regionData || {};
 
-  const [countries, setCountries] = useState<Country[]>([]); // used for region form select
+  if (debug) {
+    log.info('Initial data snapshot', {
+      regionsLen: regions.length,
+      regionStatus,
+      regionHasFetched,
+      countriesLen: countries.length,
+      countryStatus,
+      countryHasFetched,
+    });
+  }
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingRegion, setEditingRegion] = useState<Region | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -40,63 +59,45 @@ const Regions: React.FC = () => {
     description: "",
     isActive: true,
   });
-  // Country table state
-  const [countryTable, setCountryTable] = useState<Country[]>([]);
-  const [countryTableLoading, setCountryTableLoading] = useState(false);
-  const [countrySearchTerm, setCountrySearchTerm] = useState("");
   const [isCountryModalOpen, setIsCountryModalOpen] = useState(false);
   const [countryFormData, setCountryFormData] = useState({ name: "" });
   const [editingCountry, setEditingCountry] = useState<Country | null>(null);
-  const [fetchError, setFetchError] = useState<string | null>(null);
+  const [countrySearchTerm, setCountrySearchTerm] = useState("");
   const [activePane, setActivePane] = useState<"region" | "country">("region");
-  const [fetchAttempts, setFetchAttempts] = useState(0);
-  const MAX_FETCH_ATTEMPTS = 1;
 
-  const fetchCountries = useCallback(async () => {
-    try {
-      setFetchError(null);
-      const list = (await countryService.getCountries()) as unknown;
-      setCountries(Array.isArray(list) ? list : []);
-    } catch (error) {
-      log.error('Error fetching countries', error as unknown);
-      setFetchError("Failed to fetch countries");
-      setCountries([]);
-    }
-  }, []);
+  // Derive page resource states using shared hook
+  const regionPage = usePageResourceState({ status: regionStatus, hasFetched: regionHasFetched, error: regionError }, regions);
+  const countryPage = usePageResourceState({ status: countryStatus, hasFetched: countryHasFetched, error: countryError }, countries);
 
-  const fetchCountryTable = useCallback(async () => {
-    try {
-      setCountryTableLoading(true);
-      setFetchError(null);
-      const list = (await countryService.getCountries()) as unknown;
-      setCountryTable(Array.isArray(list) ? list : []);
-    } catch (error) {
-      log.error('Error fetching country table', error as unknown);
-      setFetchError("Failed to fetch country table");
-      setCountryTable([]);
-    } finally {
-      setCountryTableLoading(false);
-    }
-  }, []);
-
+  // Diagnostics: fires when underlying data or status changes
   useEffect(() => {
-    const initializeData = async () => {
-      try {
-        if (fetchAttempts < MAX_FETCH_ATTEMPTS) {
-          setFetchAttempts((prev) => prev + 1);
-          await Promise.all([fetchCountries(), fetchCountryTable()]);
-        }
-      } catch (error) {
-        log.error('Error initializing data', error as unknown);
-        setFetchError('Failed to initialize data');
-      }
-    };
+    if (!debug) return;
+    log.info('Regions page state change', {
+      regionsLen: regions.length,
+      regionStatus,
+      regionHasFetched,
+      regionInitialLoading: regionPage.initialLoading,
+      regionShowError: regionPage.showError,
+      regionReady: regionPage.ready,
+      regionIsEmpty: regionPage.isEmpty,
+      countriesLen: countries.length,
+      countryStatus,
+      countryHasFetched,
+      countryInitialLoading: countryPage.initialLoading,
+      countryShowError: countryPage.showError,
+      countryReady: countryPage.ready,
+      countryIsEmpty: countryPage.isEmpty,
+      activePane,
+    });
+  }, [debug, regions, regionStatus, regionHasFetched, regionPage, countries, countryStatus, countryHasFetched, countryPage, activePane]);
 
-    initializeData();
-  }, [fetchAttempts, fetchCountries, fetchCountryTable]);
+  // Log search term changes (region)
+  useEffect(() => { if (debug) log.info('Region searchTerm changed', { searchTerm }); }, [debug, searchTerm]);
+  // Log country search term changes
+  useEffect(() => { if (debug) log.info('Country searchTerm changed', { countrySearchTerm }); }, [debug, countrySearchTerm]);
 
   // Filter regions based on search term
-  const filteredRegions = React.useMemo(() => {
+  const filteredRegions = useMemo(() => {
     try {
       if (!Array.isArray(regions)) return [];
       if (searchTerm.trim() === "") return regions;
@@ -122,6 +123,7 @@ const Regions: React.FC = () => {
         isActive: true,
       });
       setIsModalOpen(true);
+      if (debug) log.info('Open region add modal');
     } catch (error) {
       log.error('Error opening add region modal', error as unknown);
     }
@@ -138,6 +140,7 @@ const Regions: React.FC = () => {
         isActive: true,
       });
       setIsModalOpen(true);
+      if (debug) log.info('Open region edit modal', { id: region.id, name: region.name });
     } catch (error) {
       log.error('Error opening edit region modal', error as unknown);
     }
@@ -169,18 +172,19 @@ const Regions: React.FC = () => {
         description: values.description,
         isActive: values.isActive,
       } as unknown as Partial<Region>;
-
+      if (debug) log.info('Region submit start', { editing: Boolean(editingRegion), payload });
       if (editingRegion?.id !== undefined) {
         if (updateRegion) await updateRegion(editingRegion.id.toString(), payload);
       } else {
         if (createRegion) await createRegion(payload);
       }
-      setFetchAttempts(0);
       await refetchRegions?.();
       setIsModalOpen(false);
+      if (debug) log.info('Region submit success');
     } catch (error) {
       log.error('Error submitting region form', error as unknown);
       alert('Failed to save region. Please try again.');
+      if (debug) log.info('Region submit failure', { error });
     }
   };
 
@@ -190,6 +194,7 @@ const Regions: React.FC = () => {
       setEditingCountry(null);
       setCountryFormData({ name: "" });
       setIsCountryModalOpen(true);
+      if (debug) log.info('Open country add modal');
     } catch (error) {
       log.error('Error opening add country modal', error as unknown);
     }
@@ -201,24 +206,25 @@ const Regions: React.FC = () => {
       setEditingCountry(country);
       setCountryFormData({ name: country.name || "" });
       setIsCountryModalOpen(true);
+      if (debug) log.info('Open country edit modal', { id: country.id, name: country.name });
     } catch (error) {
       log.error('Error opening edit country modal', error as unknown);
     }
   };
 
   // Safe filtered countries with error handling
-  const filteredCountries = React.useMemo(() => {
+  const filteredCountries = useMemo(() => {
     try {
-      if (!Array.isArray(countryTable)) return [];
-      if (countrySearchTerm.trim() === "") return countryTable;
-      return countryTable.filter((country) =>
+      if (!Array.isArray(countries)) return [];
+      if (countrySearchTerm.trim() === "") return countries;
+      return countries.filter((country) =>
         country?.name?.toLowerCase().includes(countrySearchTerm.toLowerCase())
       );
     } catch (error) {
       log.error('Error filtering countries', error as unknown);
       return [];
     }
-  }, [countrySearchTerm, countryTable]);
+  }, [countrySearchTerm, countries]);
 
   const handleCountrySubmit = async (values: { name: string }) => {
     try {
@@ -227,36 +233,25 @@ const Regions: React.FC = () => {
         return;
       }
       const payload: Partial<Country> = { name: values.name };
+      if (debug) log.info('Country submit start', { editing: Boolean(editingCountry), payload });
       if (editingCountry?.id !== undefined) {
         await updateCountry?.(editingCountry.id.toString(), payload);
       } else {
         await createCountry?.(payload);
       }
       setIsCountryModalOpen(false);
-      setFetchAttempts(0);
-      await fetchCountryTable();
+      await refetchCountries?.();
+      if (debug) log.info('Country submit success');
     } catch (error) {
       log.error('Error submitting country form', error as unknown);
       alert('Failed to save country. Please try again.');
+      if (debug) log.info('Country submit failure', { error });
     }
   };
 
   // Error section with safe error handling
-  const errorSection = fetchError ? (
-    <ErrorBanner
-      message={fetchError}
-      onRetry={async () => {
-        try {
-          setFetchError(null);
-          setFetchAttempts(0);
-          await Promise.all([refetchRegions?.(), fetchCountries(), fetchCountryTable()]);
-        } catch (err) {
-          log.error('Error retrying fetch', err as unknown);
-        }
-      }}
-      className="mb-4"
-    />
-  ) : null;
+  // We now rely on ResourceGate for error display, so no standalone errorSection.
+  const errorSection = null;
 
   // Filters with error protection
   const regionFilters = (
@@ -278,27 +273,46 @@ const Regions: React.FC = () => {
   );
 
   const regionTablePane = (
-    <RegionTable
-      regions={filteredRegions}
-      loading={isLoading}
-      onEdit={handleEdit}
-    />
+    <ResourceGate
+      loading={regionPage.initialLoading}
+      error={regionError || null}
+      showError={regionPage.showError}
+      onRetry={refetchRegions}
+    >
+      <RegionTable
+        regions={filteredRegions}
+        loading={regionLoading && !regionPage.initialLoading}
+        onEdit={handleEdit}
+      />
+    </ResourceGate>
   );
 
   const countryTablePane = (
-    <CountryTable
-      countries={filteredCountries}
-      loading={countryTableLoading}
-      onEdit={handleCountryEdit}
-    />
+    <ResourceGate
+      loading={countryPage.initialLoading}
+      error={countryError || null}
+      showError={countryPage.showError}
+      onRetry={refetchCountries}
+    >
+      <CountryTable
+        countries={filteredCountries}
+        loading={countryLoading && !countryPage.initialLoading}
+        onEdit={handleCountryEdit}
+      />
+    </ResourceGate>
   );
+
+  const handlePaneChange = (k: string) => {
+    setActivePane(k as 'region' | 'country');
+    if (debug) log.info('Pane switched', { pane: k });
+  };
 
   const table = (
     <>
       <PaneSwitch
         active={activePane}
         items={[{ key: 'region', label: 'Region Management' }, { key: 'country', label: 'Country Management' }]}
-        onChange={(k) => setActivePane(k as 'region'|'country')}
+        onChange={handlePaneChange}
       />
       {activePane === "region" ? regionTablePane : countryTablePane}
     </>
@@ -341,6 +355,7 @@ const Regions: React.FC = () => {
       filters={activePane === "region" ? regionFilters : countryFilters}
       buttons={null}
       errorSection={errorSection}
+      loading={activePane === 'region' ? regionPage.initialLoading : countryPage.initialLoading}
       table={table}
       modal={modal}
     />

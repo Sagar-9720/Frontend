@@ -11,6 +11,8 @@ interface GenericLayoutProps {
   table: React.ReactNode;
   modal?: React.ReactNode;
   errorSection?: React.ReactNode;
+  /** Page-level loading state (initial skeleton) */
+  loading?: boolean;
 }
 
 export const GenericLayout: React.FC<GenericLayoutProps> = ({
@@ -21,6 +23,7 @@ export const GenericLayout: React.FC<GenericLayoutProps> = ({
   table,
   modal,
   errorSection,
+  loading = false,
 }) => (
   <div className="flex h-screen overflow-hidden">
     <Sidebar />
@@ -41,8 +44,20 @@ export const GenericLayout: React.FC<GenericLayoutProps> = ({
             {filters}
           </div>
         )}
-        {errorSection}
-        {table}
+        {loading ? (
+          <div className="animate-pulse space-y-4" data-testid="page-skeleton">
+            <div className="h-10 bg-gray-100 rounded-md" />
+            <div className="h-24 bg-gray-100 rounded-md" />
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="h-16 bg-gray-100 rounded-md" />
+            ))}
+          </div>
+        ) : (
+          <>
+            {errorSection}
+            {table}
+          </>
+        )}
         {modal}
       </div>
     </div>

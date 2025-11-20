@@ -57,7 +57,7 @@ export const useTravelJournals = () => {
 
    const mapListFn = useCallback((raw: unknown[]) => (raw as Record<string, unknown>[]).map(mapJournal), []);
 
-   const { data, loading, error, refetch } = useResource<TravelJournalUI, unknown[]>({
+  const { data, loading, error, refetch, status } = useResource<TravelJournalUI, unknown[]>({
      sourceName: 'TravelJournalDataManager',
      fetchFn,
      mapListFn,
@@ -65,5 +65,5 @@ export const useTravelJournals = () => {
      errorMessage: DATA_MANAGER.ERRORS.JOURNALS,
    });
 
-   return useMemo(() => ({ journals: (data as TravelJournalUI[]) || [], loading, error, refetch }), [data, loading, error, refetch]);
+   return useMemo(() => ({ journals: (data as TravelJournalUI[]) || [], loading, error, status, refetch }), [data, loading, error, status, refetch]);
  };

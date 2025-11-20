@@ -5,17 +5,21 @@ import { Country } from "../models/entity/Country";
 import { regionService } from "../services/regionService";
 import { countryService } from "../services/countryService";
 
+const fetchRegions = async () => regionService.getRegions() as Promise<Region[]>;
+const fetchCountries = async () => countryService.getCountries() as Promise<Country[]>;
+
 export const useRegionsAndCountries = () => {
   const regionsRes = useResource<Region, Region[]>({
     sourceName: 'RegionDataManager:Regions',
-    fetchFn: async () => regionService.getRegions() as Promise<Region[]>,
+    fetchFn: fetchRegions,
     mapListFn: (raw) => Array.isArray(raw) ? raw : [],
     isList: true,
     errorMessage: DATA_MANAGER.ERRORS.REGIONS,
   });
+
   const countriesRes = useResource<Country, Country[]>({
     sourceName: 'RegionDataManager:Countries',
-    fetchFn: async () => countryService.getCountries() as Promise<Country[]>,
+    fetchFn: fetchCountries,
     mapListFn: (raw) => Array.isArray(raw) ? raw : [],
     isList: true,
     errorMessage: DATA_MANAGER.ERRORS.COUNTRIES,
@@ -47,6 +51,8 @@ export const useRegionsAndCountries = () => {
     regions: (regionsRes.data as Region[]) || [],
     regionLoading: regionsRes.loading,
     regionError: regionsRes.error,
+    regionStatus: regionsRes.status,
+    regionHasFetched: regionsRes.hasFetched,
     refetchRegions: regionsRes.refetch,
     createRegion,
     updateRegion,
@@ -54,6 +60,8 @@ export const useRegionsAndCountries = () => {
     countries: (countriesRes.data as Country[]) || [],
     countryLoading: countriesRes.loading,
     countryError: countriesRes.error,
+    countryStatus: countriesRes.status,
+    countryHasFetched: countriesRes.hasFetched,
     refetchCountries: countriesRes.refetch,
     createCountry,
     updateCountry,

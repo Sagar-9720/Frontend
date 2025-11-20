@@ -51,7 +51,7 @@ export const useItineraries = () => {
 
   const mapListFn = useCallback((raw: BackendItinerary[]) => mapBackendToUI(raw), []);
 
-  const { data, loading, error, refetch } = useResource<ItineraryUI, BackendItinerary[]>({
+  const { data, loading, error, refetch, status } = useResource<ItineraryUI, BackendItinerary[]>({
     sourceName: 'ItineraryDataManager',
     fetchFn,
     mapListFn,
@@ -74,8 +74,9 @@ export const useItineraries = () => {
     itineraries: (data as ItineraryUI[]) || [],
     loading,
     error,
+    status,
     refetch,
     createItinerary,
     updateItinerary,
-  }), [data, loading, error, refetch, createItinerary, updateItinerary]);
+  }), [data, loading, error, status, refetch, createItinerary, updateItinerary]);
 };

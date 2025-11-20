@@ -9,20 +9,29 @@ import { Region } from "../../models/entity/Region";
 import { GenericLayout } from "../../components/layout/Layout";
 import { logger } from "../../utils";
 import { StatusBadge } from "../../components/common/StatusBadge";
-import { ErrorBanner } from "../../components/common/ErrorBanner";
 import { DestinationFilters } from "./sections/DestinationFilters";
+import { ResourceGate } from "../../components/common/ResourceGate";
+import { getDebugFlag, usePageResourceState } from "../../hooks/usePageResourceState";
 
 const log = logger.forSource('DestinationsPage');
 
 export const Destinations: React.FC = () => {
   const {
     destinations,
-    loading,
     error,
     refetch,
     createDestination,
     updateDestination,
+    hasFetched,
+    status,
   } = useDestinations();
+
+  useEffect(() => {
+    console.log('Destinations Component MOUNTED');
+    return () => console.log('Destinations Component UNMOUNTED');
+  }, []);
+
+  console.log('Destinations Page State:', { status, hasFetched, error, destinationsLength: destinations?.length });
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingDestination, setEditingDestination] =
@@ -40,21 +49,21 @@ export const Destinations: React.FC = () => {
   const [fetchAttempts, setFetchAttempts] = useState(0);
   const MAX_FETCH_ATTEMPTS = 1;
 
-  // Auto-retry once if initial fetch fails
-  useEffect(() => {
-    const attemptRetry = async () => {
-      try {
-        if (error && fetchAttempts < MAX_FETCH_ATTEMPTS) {
-          setFetchAttempts((prev) => prev + 1);
-          await refetch();
-        }
-      } catch (e) {
-        log.error('Auto-retry for destinations failed', e as unknown);
-      }
-    };
-    attemptRetry();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [error]);
+  // Auto-retry logic removed to prevent infinite loops during debugging
+  // useEffect(() => {
+  //   const attemptRetry = async () => {
+  //     try {
+  //       if (error && fetchAttempts < MAX_FETCH_ATTEMPTS) {
+  //         setFetchAttempts((prev) => prev + 1);
+  //         await refetch();
+  //       }
+  //     } catch (e) {
+  //       log.error('Auto-retry for destinations failed', e as unknown);
+  //     }
+  //   };
+  //   attemptRetry();
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [error]);
 
   const uniqueRegions = React.useMemo(() => {
     try {
@@ -174,25 +183,15 @@ export const Destinations: React.FC = () => {
     />
   );
 
-  const errorSection = error ? (
-    <ErrorBanner
-      message="Failed to load destinations. Please try again."
-      onRetry={async () => {
-        try {
-          setFetchAttempts(0);
-          await refetch();
-        } catch (err) {
-          log.error('Error retrying fetch', err as unknown);
-        }
-      }}
-      className="mb-4"
-    />
-  ) : null;
+  const pageState = usePageResourceState({ status, hasFetched, error }, destinations);
+  const debugForce = getDebugFlag();
 
-  const table = (
+  const errorSection = null; // handled by ResourceGate
+
+  const tableContent = (
     <DestinationTable
       destinations={filteredDestinations}
-      loading={loading && !error}
+      loading={pageState.initialLoading && !debugForce}
       onEdit={handleEdit}
       renderStatus={(d: Destination & { status?: string }) => <StatusBadge status={d?.status} />}
     />
@@ -217,7 +216,17 @@ export const Destinations: React.FC = () => {
       buttons={buttons}
       filters={filters}
       errorSection={errorSection}
-      table={table}
+      loading={debugForce ? false : pageState.initialLoading}
+      table={(
+        <ResourceGate
+          loading={pageState.initialLoading && !debugForce}
+          error={error}
+          showError={pageState.showError && !debugForce}
+          onRetry={async () => { setFetchAttempts(0); await refetch(); }}
+        >
+          {tableContent}
+        </ResourceGate>
+      )}
       modal={modal}
     />
   );

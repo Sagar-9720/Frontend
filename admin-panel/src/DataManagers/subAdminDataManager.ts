@@ -2,17 +2,18 @@ import {useResource, useMutationWithRefetch} from '../utils/dataManagerFactory';
 import {DATA_MANAGER} from '../utils/constants/dataManager';
 import {User} from "../models";
 import {authService} from "../services/api";
-import {logger} from "../utils";
+// import {logger} from "../utils"; // Uncomment for debugging
+// const log = logger.forSource('SubAdminDataManager');
 
-const log = logger.forSource('SubAdminDataManager');
+const fetchSubAdmins = async () => {
+    const response = await authService.getAllSubAdmins();
+    return Array.isArray(response) ? response : [];
+};
 
 export const useSubAdmins = () => {
-    const {data, loading, error, refetch} = useResource<User[], any>({
+    const {data, loading, error, refetch, status} = useResource<User[], any>({
         sourceName: 'SubAdminDataManager',
-        fetchFn: async () => {
-            const response = await authService.getAllSubAdmins();
-            return Array.isArray(response) ? response : [];
-        },
+        fetchFn: fetchSubAdmins,
         mapListFn: (raw) => Array.isArray(raw) ? raw : [],
         isList: true,
         errorMessage: DATA_MANAGER.ERRORS.SUBADMINS,
@@ -43,6 +44,7 @@ export const useSubAdmins = () => {
         subAdmins: (data as User[]) || [],
         loading,
         error,
+        status,
         fetchSubAdmins: refetch,
         createSubAdmin,
         updateSubAdmin,

@@ -3,13 +3,15 @@ import { DATA_MANAGER } from '../utils/constants/dataManager';
 import { Destination } from "../models/entity/Destination";
 import { destinationService } from "../services/destinationService";
 
+const fetchDestinations = async () => {
+  const result = await destinationService.getDestinations();
+  return Array.isArray(result) ? result : [];
+};
+
 export const useDestinations = () => {
-  const { data, loading, error, refetch, setData } = useResource<Destination, Destination[]>({
+  const { data, loading, error, refetch, setData, hasFetched, status } = useResource<Destination, Destination[]>({
     sourceName: 'DestinationDataManager',
-    fetchFn: async () => {
-      const result = await destinationService.getDestinations();
-      return Array.isArray(result) ? result : [];
-    },
+    fetchFn: fetchDestinations,
     mapListFn: (raw) => raw as Destination[],
     isList: true,
     errorMessage: DATA_MANAGER.ERRORS.DESTINATIONS,
@@ -34,5 +36,7 @@ export const useDestinations = () => {
     createDestination,
     updateDestination,
     setDestinations: setData,
+    hasFetched,
+    status,
   };
 };
